@@ -299,8 +299,10 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
         scale = MAX(cropBoxSize.width/imageSize.width, cropBoxSize.height/imageSize.height);
     }
 
-    //Whether aspect ratio, or original, the final image size we'll base the rest of the calculations off
-    CGSize scaledSize = (CGSize){floorf(imageSize.width * scale), floorf(imageSize.height * scale)};
+    // Whether aspect ratio, or original, the final image size we'll base the rest of the calculations off
+    
+    // Fixed cropping issue. scaled size when layout initlized is different from the size after gestures made because of the cut off from floorf() function
+    CGSize scaledSize = (CGSize){(imageSize.width * scale), (imageSize.height * scale)};
     
     // Configure the scroll view
     self.scrollView.minimumZoomScale = scale;

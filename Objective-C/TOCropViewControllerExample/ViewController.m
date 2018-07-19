@@ -42,8 +42,11 @@
     //cropController.imageCropFrame = CGRectMake(0,0,2848,4288); //The initial frame that the crop controller will have visible.
     
     // -- Uncomment the following lines of code to test out the aspect ratio features --
-    //cropController.aspectRatioPreset = TOCropViewControllerAspectRatioPresetSquare; //Set the initial aspect ratio as a square
-    //cropController.aspectRatioLockEnabled = YES; // The crop box is locked to the aspect ratio and can't be resized away from it
+    
+    // -- Chris: Uncommented aspect ratio preset feature for testing square cropper
+    cropController.aspectRatioPreset = TOCropViewControllerAspectRatioPresetSquare; //Set the initial aspect ratio as a square
+    cropController.aspectRatioLockEnabled = YES; // The crop box is locked to the aspect ratio and can't be resized away from it
+    
     //cropController.resetAspectRatioEnabled = NO; // When tapping 'reset', the aspect ratio will NOT be reset back to default
     //cropController.aspectRatioPickerButtonHidden = YES;
 
@@ -96,6 +99,8 @@
 - (void)cropViewController:(TOCropViewController *)cropViewController didCropToImage:(UIImage *)image withRect:(CGRect)cropRect angle:(NSInteger)angle
 {
     self.croppedFrame = cropRect;
+    NSLog(@"Cropeed size %f, %f", cropRect.size.width, cropRect.size.height);
+    NSLog(@"Image size %f, %f", image.size.width, image.size.height);
     self.angle = angle;
     [self updateImageViewWithImage:image fromCropViewController:cropViewController];
 }
