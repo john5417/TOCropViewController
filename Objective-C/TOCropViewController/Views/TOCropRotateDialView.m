@@ -36,32 +36,32 @@ static const CGFloat kTOCropRotateViewTextRadiusDiff = 10;
     NSMutableParagraphStyle *style = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
     style.alignment = NSTextAlignmentCenter;
     NSDictionary *textAttributes = @{NSForegroundColorAttributeName: kTOCropRotateViewColor, NSParagraphStyleAttributeName: style};
-    int idx = 0;
-    self.baseDegree = M_PI / 6;
-    for (CGFloat angle = 0; angle < self.baseDegree + alpha; angle += 2 * M_PI / 180) {
-        // draw in angle and in -angel
-        int mul = 1;
-        while (mul != 0) {
-            CGFloat drawAngle = mul * angle;
-            CGPoint dotPt = CGPointMake(w / 2 - r * sin(drawAngle), r * cos(drawAngle) - r * cos(alpha));
-            CGFloat size = (idx % 5 == 0) ? kTOCropRotateViewLargeDotSize : kTOCropRotateViewSmallDotSize;
-            CGRect dotRect = CGRectMake(dotPt.x - size / 2, dotPt.y - size / 2, size, size);
-            CGContextFillEllipseInRect(context, dotRect);
-            CGContextFillPath(context);
-            
-            if (idx % 5 == 0) {
-                NSString *angleString = [NSString stringWithFormat:@"%d", idx * 2 * mul];
-                CGPoint textDrawingCenterPoint = CGPointMake(w / 2 - textRadius * sin(drawAngle), textRadius * cos(drawAngle) - r * cos(alpha));
-                CGRect textDrawingRect = CGRectMake(textDrawingCenterPoint.x - 20 / 2, textDrawingCenterPoint.y - 20 / 2, 20, 20);
-                [angleString drawInRect:textDrawingRect withAttributes:textAttributes];
-            }
-            if (mul == 1) {
-                mul = -1;
-            } else if (mul == -1) {
-                mul = 0;
-            }
+    
+    self.baseDegree = 0;
+    
+    CGFloat startAngle = self.baseDegree - alpha;
+    int startDegree = ceilf(startAngle * 180 / M_PI);
+    startDegree = (startDegree % 2 == 0) ? startDegree : (startDegree + 1);
+    
+    startAngle = ((CGFloat)startDegree) / 180.0f * M_PI;
+    
+    for (CGFloat angle = startAngle; angle < alpha * 2 + startAngle; angle += 2 * M_PI / 180) {
+        CGFloat drawAngle = angle - startAngle - alpha;
+        CGPoint dotPt = CGPointMake(w / 2 + r * sin(drawAngle), r * cos(drawAngle) - r * cos(alpha));
+        
+        int drawDegree = (int)(roundf(angle / M_PI * 180));
+        
+        CGFloat size = (drawDegree % 10 == 0) ? kTOCropRotateViewLargeDotSize : kTOCropRotateViewSmallDotSize;
+        CGRect dotRect = CGRectMake(dotPt.x - size / 2, dotPt.y - size / 2, size, size);
+        CGContextFillEllipseInRect(context, dotRect);
+        CGContextFillPath(context);
+        
+        if (abs(drawDegree) % 10 == 0) {
+            NSString *angleString = [NSString stringWithFormat:@"%d", drawDegree];
+            CGPoint textDrawingCenterPoint = CGPointMake(w / 2 + textRadius * sin(drawAngle), textRadius * cos(drawAngle) - r * cos(alpha));
+            CGRect textDrawingRect = CGRectMake(textDrawingCenterPoint.x - 20 / 2, textDrawingCenterPoint.y - 20 / 2, 20, 20);
+            [angleString drawInRect:textDrawingRect withAttributes:textAttributes];
         }
-        idx++;
     }
 }
 
