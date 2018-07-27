@@ -23,6 +23,7 @@
 #import "TOCropView.h"
 #import "TOCropOverlayView.h"
 #import "TOCropScrollView.h"
+#import "TOCropRotateDialView.h"
 
 #define TOCROPVIEW_BACKGROUND_COLOR [UIColor colorWithWhite:0.12f alpha:1.0f]
 
@@ -30,6 +31,8 @@ static const CGFloat kTOCropViewPadding = 14.0f;
 static const NSTimeInterval kTOCropTimerDuration = 0.8f;
 static const CGFloat kTOCropViewMinimumBoxSize = 42.0f;
 static const CGFloat kTOCropViewCircularPathRadius = 300.0f;
+static const CGFloat kTORotateDialViewHeight = 80;
+static const CGFloat kTORotateDialViewHorizontalPadding = 50;
 
 /* When the user taps down to resize the box, this state is used
  to determine where they tapped and how to manipulate the box */
@@ -60,6 +63,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 @property (nonatomic, strong) UIView *translucencyView;             /* A blur view that is made visible when the user isn't interacting with the crop view */
 @property (nonatomic, strong) id translucencyEffect;                /* The dark blur visual effect applied to the visual effect view. */
 @property (nonatomic, strong, readwrite) TOCropOverlayView *gridOverlayView;   /* A grid view overlaid on top of the foreground image view's container. */
+@property (nonatomic, strong, readwrite) TOCropRotateDialView *rotateDialView;   /* A rotate dial view for cropping */
 @property (nonatomic, strong) CAShapeLayer *circularMaskLayer;      /* Managing the clipping of the foreground container into a circle */
 
 /* Gesture Recognizers */
@@ -161,6 +165,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     self.scrollView.showsHorizontalScrollIndicator = NO;
     self.scrollView.showsVerticalScrollIndicator = NO;
     self.scrollView.delegate = self;
+    self.scrollView.canCancelContentTouches = NO;
     [self addSubview:self.scrollView];
 
     // Disable smart inset behavior in iOS 11
@@ -231,11 +236,29 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     self.gridOverlayView.gridHidden = YES;
     [self addSubview:self.gridOverlayView];
     
+    // The rotate dial view
+    self.rotateDialView = [[TOCropRotateDialView alloc] initWithFrame:CGRectZero];
+    self.rotateDialView.userInteractionEnabled = YES;
+    self.rotateDialView.backgroundColor = [UIColor clearColor];
+    self.rotateDialView.hidden = YES;
+    self.rotateDialView.exclusiveTouch = YES;
+    [self addSubview:self.rotateDialView];
+    
     // The pan controller to recognize gestures meant to resize the grid view
     self.gridPanGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(gridPanGestureRecognized:)];
     self.gridPanGestureRecognizer.delegate = self;
     [self.scrollView.panGestureRecognizer requireGestureRecognizerToFail:self.gridPanGestureRecognizer];
     [self addGestureRecognizer:self.gridPanGestureRecognizer];
+}
+
+#pragma mark - rotate dial view
+- (void) rotateDialViewVisible:(BOOL)visible {
+    self.rotateDialView.hidden = !visible;
+    if (visible) {
+        CGRect cropViewFrame = self.gridOverlayView.frame;
+        self.rotateDialView.frame = CGRectMake(cropViewFrame.origin.x + kTORotateDialViewHorizontalPadding, cropViewFrame.origin.y + cropViewFrame.size.height, cropViewFrame.size.width - kTORotateDialViewHorizontalPadding * 2, kTORotateDialViewHeight);
+        [self.rotateDialView setNeedsDisplay];
+    }
 }
 
 #pragma mark - View Layout -
@@ -752,8 +775,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 {
     if (self.dynamicBlurEffect == NO) {
         self.translucencyView.alpha = visible ? 1.0f : 0.0f;
-    }
-    else {
+    } else {
         [(UIVisualEffectView *)self.translucencyView setEffect:visible ? self.translucencyEffect : nil];
     }
 }
@@ -826,6 +848,8 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     CGRect frame = self.gridOverlayView.frame;
     CGRect innerFrame = CGRectInset(frame, 22.0f, 22.0f);
     CGRect outerFrame = CGRectInset(frame, -22.0f, -22.0f);
+    
+    [self rotateDialViewVisible:NO];
     
     if (CGRectContainsPoint(innerFrame, tapPoint) || !CGRectContainsPoint(outerFrame, tapPoint))
         return NO;
@@ -1249,6 +1273,9 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
         delay = 0.0f;
     }
     
+    //////
+    
+    
     [UIView animateKeyframesWithDuration:duration delay:delay options:0 animations:^{
         [self toggleTranslucencyViewVisible:!editing];
     } completion:nil];
@@ -1330,6 +1357,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     };
     
     if (!animated) {
+        [self rotateDialViewVisible:YES];
         translateBlock();
         return;
     }
@@ -1343,7 +1371,11 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
               initialSpringVelocity:1.0f
                             options:UIViewAnimationOptionBeginFromCurrentState
                          animations:translateBlock
-                         completion:nil];
+                         completion:^(BOOL complete) {
+                             if (complete) {
+                                 [self rotateDialViewVisible:YES];
+                             }
+                         }];
     });
 }
 

@@ -23,6 +23,7 @@
 #import <UIKit/UIKit.h>
 
 @class TOCropOverlayView;
+@class TOCropRotateDialView;
 
 typedef NS_ENUM(NSInteger, TOCropViewCroppingStyle) {
     TOCropViewCroppingStyleDefault,     // The regular, rectangular crop box
@@ -54,6 +55,11 @@ typedef NS_ENUM(NSInteger, TOCropViewCroppingStyle) {
  A grid view overlaid on top of the foreground image view's container.
  */
 @property (nonnull, nonatomic, strong, readonly) TOCropOverlayView *gridOverlayView;
+
+/**
+ A rotate dial view for cropping
+ */
+@property (nonnull, nonatomic, strong, readonly) TOCropRotateDialView *rotateDialView;
 
 /**
  A delegate object that receives notifications from the crop view
