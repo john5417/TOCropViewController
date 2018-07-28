@@ -813,6 +813,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 #pragma mark - Gesture Recognizer -
 - (void)gridPanGestureRecognized:(UIPanGestureRecognizer *)recognizer
 {
+    NSLog(@"grid pan gesture recognized");
     CGPoint point = [recognizer locationInView:self];
     
     if (recognizer.state == UIGestureRecognizerStateBegan) {
