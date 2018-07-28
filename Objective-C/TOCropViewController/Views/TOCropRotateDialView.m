@@ -15,7 +15,6 @@ static const CGFloat kTOCropRotateViewTextRadiusDiff = 10;
 
 @interface TOCropRotateDialView () {
     CGFloat touchStartPoint;
-    
     CGFloat targetBaseDegree;
 }
 
@@ -44,7 +43,6 @@ static const CGFloat kTOCropRotateViewTextRadiusDiff = 10;
     int startDegree = ceilf(startAngle * 180 / M_PI);
     startDegree = (startDegree % 2 == 0) ? startDegree : (startDegree + 1);
     startAngle = ((CGFloat)startDegree) / 180.0f * M_PI;
-    NSLog(@"start angle - %f", startAngle);
     
     for (CGFloat angle = startAngle; angle < alpha * 2 + startAngle; angle += 2 * M_PI / 180) {
         CGFloat drawAngle = angle - self.baseDegree;
@@ -75,6 +73,9 @@ static const CGFloat kTOCropRotateViewTextRadiusDiff = 10;
     UITouch *touch = [touches anyObject];
     CGPoint touchPoint = [touch locationInView:self];
     touchStartPoint = touchPoint.x;
+    if (self.delegate != nil) {
+        [self.delegate cropRotateDialViewDidRotateStart:self];
+    }
 }
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
@@ -87,8 +88,16 @@ static const CGFloat kTOCropRotateViewTextRadiusDiff = 10;
     CGFloat r = (w * w + h * h) / (4 * h);
     CGFloat alpha = atan(w / (2 * r - h));
     self.baseDegree = -1 * diff / (self.frame.size.width / 2) * (alpha);
-    
+    if (self.delegate != nil) {
+        [self.delegate cropRotateDialView:self didRotate:self.baseDegree];
+    }
     [self setNeedsDisplay];
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    if (self.delegate != nil) {
+        [self.delegate cropRotateDialViewDidRotateEnd:self];
+    }
 }
 
 @end

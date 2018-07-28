@@ -44,8 +44,8 @@
     // -- Uncomment the following lines of code to test out the aspect ratio features --
     
     // -- Chris: Uncommented aspect ratio preset feature for testing square cropper
-    cropController.aspectRatioPreset = TOCropViewControllerAspectRatioPresetSquare; //Set the initial aspect ratio as a square
-    cropController.aspectRatioLockEnabled = YES; // The crop box is locked to the aspect ratio and can't be resized away from it
+//    cropController.aspectRatioPreset = TOCropViewControllerAspectRatioPresetSquare; //Set the initial aspect ratio as a square
+//    cropController.aspectRatioLockEnabled = YES; // The crop box is locked to the aspect ratio and can't be resized away from it
     
     //cropController.resetAspectRatioEnabled = NO; // When tapping 'reset', the aspect ratio will NOT be reset back to default
     //cropController.aspectRatioPickerButtonHidden = YES;

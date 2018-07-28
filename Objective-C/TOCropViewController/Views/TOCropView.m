@@ -48,7 +48,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     TOCropViewOverlayEdgeLeft
 };
 
-@interface TOCropView () <UIScrollViewDelegate, UIGestureRecognizerDelegate>
+@interface TOCropView () <UIScrollViewDelegate, UIGestureRecognizerDelegate, TOCropRotateDialViewDelegate>
 
 @property (nonatomic, strong, readwrite) UIImage *image;
 @property (nonatomic, assign, readwrite) TOCropViewCroppingStyle croppingStyle;
@@ -242,6 +242,7 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
     self.rotateDialView.backgroundColor = [UIColor clearColor];
     self.rotateDialView.hidden = YES;
     self.rotateDialView.exclusiveTouch = YES;
+    self.rotateDialView.delegate = self;
     [self addSubview:self.rotateDialView];
     
     // The pan controller to recognize gestures meant to resize the grid view
@@ -259,6 +260,47 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
         self.rotateDialView.frame = CGRectMake(cropViewFrame.origin.x + kTORotateDialViewHorizontalPadding, cropViewFrame.origin.y + cropViewFrame.size.height, cropViewFrame.size.width - kTORotateDialViewHorizontalPadding * 2, kTORotateDialViewHeight);
         [self.rotateDialView setNeedsDisplay];
     }
+}
+
+- (void)cropRotateDialView:(TOCropRotateDialView *)view didRotate:(CGFloat)angle {
+    
+    NSLog(@"alpha - %f", angle);
+    
+    CGRect cropViewFrame = self.gridOverlayView.frame;
+    
+    CGFloat w = cropViewFrame.size.width;
+    CGFloat h = cropViewFrame.size.height;
+    CGFloat r = sqrt(w * w + h * h) / 2;
+    CGFloat gamma = atan(w / h);
+    CGFloat x = h / 2 / cos(gamma - ((angle > 0) ? angle : (-angle)));
+    CGFloat scale = r / x;
+    
+    
+    CGPoint rotationPoint = CGPointMake(cropViewFrame.origin.x + cropViewFrame.size.width / 2, cropViewFrame.origin.y + cropViewFrame.size.height / 2);
+    CGPoint p = CGPointMake(rotationPoint.x - self.foregroundContainerView.center.x, rotationPoint.y - self.foregroundContainerView.center.y);
+    self.foregroundContainerView.transform = CGAffineTransformScale(CGAffineTransformTranslate(CGAffineTransformRotate(CGAffineTransformTranslate(CGAffineTransformIdentity, p.x, p.y), angle), -p.x, -p.y), scale, scale);
+
+//    CGRect backgroundContainerViewFrame = self.backgroundImageView.frame;
+//    CGRect cropViewRectInScrollView = [self.backgroundContainerView convertRect:cropViewFrame fromView:self];
+    p = CGPointMake(rotationPoint.x - CGRectGetMidX(cropViewFrame), rotationPoint.y - CGRectGetMidY(cropViewFrame));
+    self.scrollView.transform = CGAffineTransformScale(CGAffineTransformTranslate(CGAffineTransformRotate(CGAffineTransformTranslate(CGAffineTransformIdentity, p.x, p.y), angle), -p.x, -p.y), scale, scale);
+    
+//    CGRect backgroundContainerViewFrame = self.backgroundImageView.frame;
+//    CGRect cropViewRectInScrollView = [self.backgroundContainerView convertRect:cropViewFrame fromView:self];
+//    p = CGPointMake(CGRectGetMidX(cropViewRectInScrollView) - CGRectGetMidX(backgroundContainerViewFrame), CGRectGetMidY(cropViewRectInScrollView) - CGRectGetMidY(backgroundContainerViewFrame));
+//    self.backgroundImageView.transform = CGAffineTransformScale(CGAffineTransformTranslate(CGAffineTransformRotate(CGAffineTransformTranslate(CGAffineTransformIdentity, p.x, p.y), angle), -p.x, -p.y), scale, scale);
+
+    
+}
+
+- (void)cropRotateDialViewDidRotateStart:(TOCropRotateDialView *)view {
+    [self toggleTranslucencyViewVisible:NO];
+//    self.foregroundContainerView.clipsToBounds = NO;
+}
+
+- (void)cropRotateDialViewDidRotateEnd:(TOCropRotateDialView *)view {
+    [self toggleTranslucencyViewVisible:YES];
+//    self.foregroundContainerView.clipsToBounds = YES;
 }
 
 #pragma mark - View Layout -
