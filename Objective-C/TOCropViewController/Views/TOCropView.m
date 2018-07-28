@@ -264,43 +264,30 @@ typedef NS_ENUM(NSInteger, TOCropViewOverlayEdge) {
 
 - (void)cropRotateDialView:(TOCropRotateDialView *)view didRotate:(CGFloat)angle {
     
-    NSLog(@"alpha - %f", angle);
-    
     CGRect cropViewFrame = self.gridOverlayView.frame;
     
     CGFloat w = cropViewFrame.size.width;
     CGFloat h = cropViewFrame.size.height;
     CGFloat r = sqrt(w * w + h * h) / 2;
-    CGFloat gamma = atan(w / h);
-    CGFloat x = h / 2 / cos(gamma - ((angle > 0) ? angle : (-angle)));
+    CGFloat gamma = atan(MAX(w, h) / MIN(w,h));
+    CGFloat x = MIN(w, h) / 2 / cos(gamma - ((angle > 0) ? angle : (-angle)));
     CGFloat scale = r / x;
-    
     
     CGPoint rotationPoint = CGPointMake(cropViewFrame.origin.x + cropViewFrame.size.width / 2, cropViewFrame.origin.y + cropViewFrame.size.height / 2);
     CGPoint p = CGPointMake(rotationPoint.x - self.foregroundContainerView.center.x, rotationPoint.y - self.foregroundContainerView.center.y);
     self.foregroundContainerView.transform = CGAffineTransformScale(CGAffineTransformTranslate(CGAffineTransformRotate(CGAffineTransformTranslate(CGAffineTransformIdentity, p.x, p.y), angle), -p.x, -p.y), scale, scale);
 
-//    CGRect backgroundContainerViewFrame = self.backgroundImageView.frame;
-//    CGRect cropViewRectInScrollView = [self.backgroundContainerView convertRect:cropViewFrame fromView:self];
     p = CGPointMake(rotationPoint.x - CGRectGetMidX(cropViewFrame), rotationPoint.y - CGRectGetMidY(cropViewFrame));
     self.scrollView.transform = CGAffineTransformScale(CGAffineTransformTranslate(CGAffineTransformRotate(CGAffineTransformTranslate(CGAffineTransformIdentity, p.x, p.y), angle), -p.x, -p.y), scale, scale);
-    
-//    CGRect backgroundContainerViewFrame = self.backgroundImageView.frame;
-//    CGRect cropViewRectInScrollView = [self.backgroundContainerView convertRect:cropViewFrame fromView:self];
-//    p = CGPointMake(CGRectGetMidX(cropViewRectInScrollView) - CGRectGetMidX(backgroundContainerViewFrame), CGRectGetMidY(cropViewRectInScrollView) - CGRectGetMidY(backgroundContainerViewFrame));
-//    self.backgroundImageView.transform = CGAffineTransformScale(CGAffineTransformTranslate(CGAffineTransformRotate(CGAffineTransformTranslate(CGAffineTransformIdentity, p.x, p.y), angle), -p.x, -p.y), scale, scale);
-
     
 }
 
 - (void)cropRotateDialViewDidRotateStart:(TOCropRotateDialView *)view {
     [self toggleTranslucencyViewVisible:NO];
-//    self.foregroundContainerView.clipsToBounds = NO;
 }
 
 - (void)cropRotateDialViewDidRotateEnd:(TOCropRotateDialView *)view {
     [self toggleTranslucencyViewVisible:YES];
-//    self.foregroundContainerView.clipsToBounds = YES;
 }
 
 #pragma mark - View Layout -
